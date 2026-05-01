@@ -1,0 +1,34 @@
+name: "car_telemetry"
+version: "1.0.0"
+config-version: 2
+
+profile: "car_telemetry"
+
+model-paths: [ "models" ]
+analysis-paths: [ "analyses" ]
+test-paths: [ "tests" ]
+seed-paths: [ "seeds" ]
+macro-paths: [ "macros" ]
+snapshot-paths: [ "snapshots" ]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  car_telemetry:
+    staging:
+      +materialized: view
+      +schema: silver
+    intermediate:
+      +materialized: view
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+      fct_telemetry:
+        +materialized: incremental
+        +unique_key: "surrogate_key"
+      agg_trip_summary:
+        +materialized: incremental
+        +unique_key: "surrogate_key"

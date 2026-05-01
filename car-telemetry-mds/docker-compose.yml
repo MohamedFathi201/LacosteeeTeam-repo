@@ -1,0 +1,110 @@
+
+x-airflow-common: &airflow-common
+  build:
+    context: ./airflow
+    dockerfile: Dockerfile
+  env_file: .env
+  environment:
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    DBT_POSTGRES_HOST: postgres
+    DBT_POSTGRES_USER: ${POSTGRES_USER}
+    DBT_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    DBT_POSTGRES_DB: ${POSTGRES_DB}
+    DBT_POSTGRES_PORT: "5432"
+    DBT_POSTGRES_SCHEMA: public
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./dbt_project:/opt/airflow/dbt_project
+    - shared_data:/opt/airflow/data
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - backend
+    - simulator-net
+
+services:
+  # ──────────────────────────────────────────────────────
+  # PostgreSQL 15 — Data Warehouse
+  # ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    container_name: car_telemetry_postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────────────
+  # Airflow Webserver
+  # ──────────────────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: car_telemetry_airflow_webserver
+    command:
+      - bash
+      - -c
+      - |
+        airflow db migrate
+        airflow users delete --username admin 2>/dev/null || true
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+        airflow connections delete postgres_dw 2>/dev/null || true
+        airflow connections add postgres_dw --conn-type postgres --conn-host postgres --conn-login $${POSTGRES_USER} --conn-password $${POSTGRES_PASSWORD} --conn-port 5432 --conn-schema $${POSTGRES_DB}
+        exec airflow webserver
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────
+  # Airflow Scheduler
+  # ──────────────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: car_telemetry_airflow_scheduler
+    command:
+      - bash
+      - -c
+      - |
+        airflow db migrate
+        exec airflow scheduler
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────
+  # Car Simulator
+  # ──────────────────────────────────────────────────────
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: car_telemetry_simulator
+    volumes:
+      - shared_data:/data
+    networks:
+      - simulator-net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  shared_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
+  simulator-net:
+    driver: bridge

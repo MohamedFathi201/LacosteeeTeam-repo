@@ -1,0 +1,85 @@
+version: 2
+
+models:
+  - name: fct_telemetry
+    description: >
+      Incremental fact table containing all enriched telemetry records
+      with Fahrenheit conversions, fuel consumption, and speed buckets.
+    columns:
+      - name: surrogate_key
+        description: "Surrogate key derived from timestamp + tick"
+        tests:
+          - unique
+          - not_null
+      - name: timestamp
+        description: "UTC timestamp of the simulator tick"
+        tests:
+          - not_null
+      - name: tick
+        description: "Monotonically increasing tick counter"
+        tests:
+          - not_null
+      - name: drive_state
+        description: "Current driving state"
+        tests:
+          - accepted_values:
+              values: ['IDLE', 'ACCELERATING', 'CRUISING', 'BRAKING', 'STOPPED']
+
+  - name: fct_anomalies
+    description: >
+      Fact table capturing telemetry ticks where at least one anomaly
+      condition was triggered (check engine, overheating tyres, low battery).
+    columns:
+      - name: timestamp
+        description: "UTC timestamp of the anomalous tick"
+        tests:
+          - not_null
+      - name: anomaly_flags
+        description: "Array of triggered anomaly flag names"
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: >
+            "timestamp" in (select "timestamp" from {{ ref('fct_telemetry') }})
+          config:
+            severity: warn
+
+  - name: dim_driving_states
+    description: >
+      Static dimension table for the 5 driving states with descriptions
+      and movement flags. Sourced from the drive_state_labels seed.
+    columns:
+      - name: drive_state_key
+        description: "Integer surrogate key for the drive state"
+        tests:
+          - unique
+          - not_null
+      - name: drive_state
+        description: "Drive state name"
+        tests:
+          - not_null
+
+  - name: agg_trip_summary
+    description: >
+      Incremental aggregation of telemetry grouped by drive_state
+      and speed_bucket with summary metrics per segment.
+    columns:
+      - name: surrogate_key
+        description: "Surrogate key from drive_state + speed_bucket"
+        tests:
+          - not_null
+      - name: drive_state
+        description: "Driving state for this aggregation group"
+        tests:
+          - not_null
+      - name: speed_bucket
+        description: "Speed classification: city, suburban, or highway"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['city', 'suburban', 'highway']
+      - name: record_count
+        description: "Number of telemetry records in this group"
+        tests:
+          - not_null

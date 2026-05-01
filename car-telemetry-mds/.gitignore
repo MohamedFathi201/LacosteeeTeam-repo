@@ -1,0 +1,6 @@
+dbt_modules/
+dbt_packages/
+target/
+logs/
+__pycache__/
+*.jsonl

@@ -1,0 +1,55 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: raw_car_telemetry
+        description: "Raw JSONL records from the car simulator, stored as JSONB"
+        columns:
+          - name: id
+            description: "Auto-incrementing primary key"
+          - name: ingested_at
+            description: "Timestamp when the record was ingested into bronze"
+          - name: raw_data
+            description: "Full JSON record from the simulator as JSONB"
+
+models:
+  - name: stg_car_telemetry
+    description: >
+      Staging model that extracts, casts, and deduplicates all fields
+      from the bronze raw_car_telemetry JSONB column.
+    columns:
+      - name: timestamp
+        description: "UTC timestamp of the simulator tick"
+        tests:
+          - not_null
+      - name: tick
+        description: "Monotonically increasing tick counter"
+        tests:
+          - not_null
+      - name: rpm
+        description: "Engine revolutions per minute"
+        tests:
+          - not_null
+      - name: speed_kmh
+        description: "Vehicle speed in km/h"
+        tests:
+          - not_null
+      - name: fuel_level
+        description: "Fuel level as a percentage (0-100)"
+        tests:
+          - not_null
+      - name: drive_state
+        description: "Current driving state (IDLE, ACCELERATING, CRUISING, BRAKING, STOPPED)"
+      - name: engine_temp
+        description: "Engine coolant temperature in Celsius"
+      - name: oil_temp
+        description: "Engine oil temperature in Celsius"
+      - name: battery_voltage
+        description: "Battery voltage in volts"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - timestamp
+            - tick

@@ -43,23 +43,23 @@ The pipeline demonstrates modern Data Engineering concepts including:
                                     Car Simulator                        Car Simulator
                                          │                                    │
                                          ▼                                    ▼
-                                  car_stream.jsonl                    Azure Event Hub
+                                  car_stream.jsonl                     Azure Iot Hub
                                          │                                    │
                                          ▼                                    ▼
-                                  Apache Airflow                  Azure Stream Analytics
+                                  Apache Airflow                     Azure Stream Analytics
                                          │                                    │
                                          ▼                                    ▼
-                               PostgreSQL (Bronze)             Azure Data Factory
-                                         │                           / Synapse
+                               PostgreSQL (Bronze)                    Azure Data Factory
+                                         │                               / Synapse
                                          ▼                                    │
-                               dbt (Staging → Silver → Gold)                 ▼
-                                         │                          Azure Data Lake
+                               dbt (Staging → Silver → Gold)                  ▼
+                                         │                             Azure Data Lake
                                          ▼                                    │
                                Gold Analytics Tables                          ▼
-                                                                   Transformations
-                                                                 (Silver → Gold)
-                                                                             │
-                                                                             ▼
+                                                                       Transformations
+                                                                       (Silver → Gold)
+                                                                              │
+                                                                              ▼
                                                                    Gold Analytics Tables
                  ───────────────────────┬──────────────────────────────────────────────┬───────────────────────
                                                            │

@@ -5,6 +5,7 @@
 
 This project is an end-to-end Data Engineering pipeline that simulates real-time vehicle telemetry, ingests streaming data into PostgreSQL, transforms it using dbt, and orchestrates the entire workflow with Apache Airflow running inside Docker containers and streams it with real-time alerting, and visualizes it on a live dashboard.
 
+---
 ## Milestones
 
 | # | Milestone | Status |
@@ -14,6 +15,7 @@ This project is an end-to-end Data Engineering pipeline that simulates real-time
 | 3 | Streaming Pipeline with Alerts | Upcoming |
 | 4 | Dashboard & Final Report | Upcoming |
 
+---
 The pipeline demonstrates modern Data Engineering concepts including:
 
 * Real-time data simulation

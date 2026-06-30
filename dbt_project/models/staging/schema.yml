@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: raw_car_telemetry
+
+models:
+  - name: stg_car_telemetry
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - timestamp
+            - tick
+    columns:
+      - name: timestamp
+        tests:
+          - not_null
+      - name: tick
+        tests:
+          - not_null
+      - name: rpm
+        tests:
+          - not_null
+      - name: speed_kmh
+        tests:
+          - not_null
+      - name: fuel_level
+        tests:
+          - not_null

@@ -1,0 +1,36 @@
+name: car_telemetry
+version: 1.0.0
+config-version: 2
+
+profile: car_telemetry
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+models:
+  car_telemetry:
+
+    staging:
+      +schema: silver
+      +materialized: table
+
+    intermediate-silver:
+      +schema: silver
+      +materialized: view
+
+    gold:
+      +schema: gold
+
+      facts:
+        +materialized: table
+          
+      aggregates:
+        +materialized: table
+
+      dimensions:
+        +materialized: table
+
+seeds:
+  car_telemetry:
+    +schema: silver

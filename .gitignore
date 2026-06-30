@@ -1,0 +1,30 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Airflow
+airflow/logs/
+
+# Node
+node_modules/
+dist/
+
+# Docker
+*.log
+
+# VS Code / Codex
+.vscode/
+.codex/
+
+# OS
+.DS_Store
+Thumbs.db

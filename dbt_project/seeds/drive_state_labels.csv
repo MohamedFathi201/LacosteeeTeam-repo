@@ -1,0 +1,6 @@
+drive_state,drive_state_key,description,is_moving
+IDLE,1,Engine is on but the vehicle is stationary,false
+ACCELERATING,2,Vehicle speed is increasing,true
+CRUISING,3,Vehicle is moving at relatively stable speed,true
+BRAKING,4,Vehicle is decelerating,true
+STOPPED,5,Vehicle is fully stopped,false

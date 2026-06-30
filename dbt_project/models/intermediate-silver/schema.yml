@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: int_telemetry_unpacked
+    description: >
+      Cleanses, enriches and validates raw vehicle telemetry data.
+      This model transforms staged telemetry into business-ready records by
+      deriving engineering metrics, assessing subsystem health and calculating
+      overall vehicle health indicators.
+
+    columns:
+
+      - name: timestamp
+        description: Timestamp of the telemetry event.
+
+      - name: tick
+        description: Sequential simulator event number.
+
+      - name: speed_kmh
+        description: Vehicle speed in kilometres per hour.
+
+      - name: rpm
+        description: Engine revolutions per minute.
+
+      - name: engine_temp
+        description: Engine coolant temperature in Celsius.
+
+      - name: oil_temp
+        description: Engine oil temperature in Celsius.
+
+      - name: oil_pressure
+        description: Engine oil pressure.
+
+      - name: battery_voltage
+        description: Vehicle battery voltage.
+
+      - name: fuel_level
+        description: Remaining fuel percentage.
+
+      - name: drive_state
+        description: Current driving state of the vehicle.
+
+      - name: vehicle_health
+        description: Overall vehicle health classification.
+
+      - name: anomaly_count
+        description: Number of subsystem anomalies detected.
+
+      - name: ready_for_trip
+        description: Indicates whether all subsystems are operating normally.

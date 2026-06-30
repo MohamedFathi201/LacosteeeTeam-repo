@@ -1,0 +1,149 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: car-telemetry-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - backend
+
+  airflow-init:
+    build:
+      context: ./airflow
+    container_name: car-telemetry-airflow-init
+    user: "${AIRFLOW_UID}:0"
+    env_file:
+      - .env
+    environment: &airflow-env
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+    
+      AIRFLOW_ADMIN_USER: ${AIRFLOW_ADMIN_USER}
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
+      AIRFLOW_ADMIN_FIRSTNAME: ${AIRFLOW_ADMIN_FIRSTNAME}
+      AIRFLOW_ADMIN_LASTNAME: ${AIRFLOW_ADMIN_LASTNAME}
+      AIRFLOW_ADMIN_EMAIL: ${AIRFLOW_ADMIN_EMAIL}
+
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW_CONN_POSTGRES_DW: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW_CONN_FS_DEFAULT: '{"conn_type":"fs","extra":{"path":"/"}}'
+      DBT_POSTGRES_HOST: ${DBT_POSTGRES_HOST}
+      DBT_POSTGRES_PORT: ${DBT_POSTGRES_PORT}
+      DBT_POSTGRES_USER: ${DBT_POSTGRES_USER}
+      DBT_POSTGRES_PASSWORD: ${DBT_POSTGRES_PASSWORD}
+      DBT_POSTGRES_DB: ${DBT_POSTGRES_DB}
+      DBT_POSTGRES_SCHEMA: ${DBT_POSTGRES_SCHEMA}
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt_project:/opt/airflow/dbt_project
+      - shared_data:/opt/airflow/data
+      - airflow_logs:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "
+      set -euo pipefail;
+      airflow db migrate;
+      if airflow users list -o json | python -c 'import json, os, sys; users = json.load(sys.stdin); user = os.environ[\"AIRFLOW_ADMIN_USER\"]; sys.exit(0 if any(u.get(\"username\") == user for u in users) else 1)'; then
+        echo 'Airflow admin user already exists';
+      else 
+       airflow users create --role Admin --username "${AIRFLOW_ADMIN_USER}" --password "${AIRFLOW_ADMIN_PASSWORD}" --firstname "${AIRFLOW_ADMIN_FIRSTNAME}" --lastname "${AIRFLOW_ADMIN_LASTNAME}" --email "${AIRFLOW_ADMIN_EMAIL}";
+      fi
+      "
+    networks:
+      - backend
+
+  airflow-webserver:
+    build:
+      context: ./airflow
+    container_name: car-telemetry-airflow-webserver
+    restart: unless-stopped
+    user: "${AIRFLOW_UID}:0"
+    env_file:
+      - .env
+    environment:
+      <<: *airflow-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt_project:/opt/airflow/dbt_project
+      - shared_data:/opt/airflow/data
+      - airflow_logs:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    command: webserver
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+      - simulator-net
+
+  airflow-scheduler:
+    build:
+      context: ./airflow
+    container_name: car-telemetry-airflow-scheduler
+    restart: unless-stopped
+    user: "${AIRFLOW_UID}:0"
+    env_file:
+      - .env
+    environment:
+      <<: *airflow-env
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt_project:/opt/airflow/dbt_project
+      - shared_data:/opt/airflow/data
+      - airflow_logs:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    command: scheduler
+    networks:
+      - backend
+      - simulator-net
+
+  simulator:
+    build:
+      context: ./simulator
+    
+    env_file:
+      - .env  
+    container_name: car-telemetry-simulator
+    restart: unless-stopped
+    command: >
+      bash -c "mkdir -p /data && touch /data/car_stream.jsonl && chmod 666 /data/car_stream.jsonl &&
+      python -u car_simulator.py --output-path /data/car_stream.jsonl --real-time"
+    volumes:
+      - shared_data:/data
+    networks:
+      - simulator-net
+
+volumes:
+  shared_data:
+  airflow_logs:
+  postgres_data:
+
+networks:
+  backend:
+  simulator-net:

@@ -1,0 +1,88 @@
+version: 2
+
+models:
+
+  - name: fct_vehicle_telemetry
+    description: >
+      Fact table containing enriched vehicle telemetry events.
+      Each record represents one telemetry event and includes
+      vehicle measurements, derived metrics and subsystem health
+      assessments.
+
+    columns:
+      - name: timestamp
+        description: Timestamp of the telemetry event.
+        tests:
+          - not_null
+
+      - name: tick
+        description: Unique simulator tick.
+        tests:
+          - not_null
+
+      - name: vehicle_health
+        description: Overall vehicle health status.
+        tests:
+          - accepted_values:
+              values:
+                - NORMAL
+                - WARNING
+                - CRITICAL
+
+      - name: speed_bucket
+        description: Driving speed category.
+        tests:
+          - accepted_values:
+              values:
+                - city
+                - suburban
+                - highway
+
+      - name: anomaly_count
+        description: Number of abnormal subsystems detected.
+
+      - name: engine_status
+        description: Health status of the engine subsystem.
+
+      - name: oil_status
+        description: Health status of the lubrication subsystem.
+
+      - name: battery_status
+        description: Health status of the electrical subsystem.
+
+      - name: tyre_status
+        description: Health status of the tyre subsystem.
+
+      - name: fuel_status
+        description: Health status of the fuel subsystem.
+
+      - name: ready_for_trip
+        description: Indicates whether the vehicle is safe for operation.
+
+  - name: agg_vehicle_health
+    description: >
+      Summarizes telemetry events by overall vehicle health,
+      including operational KPIs and health statistics.
+
+  - name: agg_subsystem_health
+    description: >
+      Summarizes subsystem performance by calculating
+      normal, warning and critical event frequencies
+      for maintenance analysis.
+
+  - name: agg_driving_behavior
+    description: >
+      Analyzes driving behaviour by relating speed,
+      engine load and drive state to vehicle health
+      and operating conditions.
+
+  - name: agg_efficiency
+    description: >
+      Summarizes fuel consumption, travelled distance
+      and operational efficiency across driving categories.
+
+  - name: agg_trip_summary
+    description: >
+      Provides a single-record executive summary
+      of the simulated trip including distance,
+      fuel usage, vehicle health and operational KPIs.

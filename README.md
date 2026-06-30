@@ -89,13 +89,13 @@ The pipeline demonstrates modern Data Engineering concepts including:
                               │                     Power BI Dashboard                       │
                               │                            │                                 │
                               │                            ▼                                 │
-                              │     Real-Time + Historical Fleet Analytics                  │
+                              │     Real-Time + Historical Fleet Analytics                   │
                               │                            │                                 │
                               │                            ▼                                 │
-                              │   • Vehicle Health Monitoring                               │
-                              │   • Driving Behavior Analysis                               │
-                              │   • Efficiency & Performance KPIs                           │
-                              │   • Alerts & Anomaly Detection                              │
+                              │   • Vehicle Health Monitoring                                │
+                              │   • Driving Behavior Analysis                                │
+                              │   • Efficiency & Performance KPIs                            │
+                              │   • Alerts & Anomaly Detection                               │
                               └──────────────────────────────────────────────────────────────┘
 ```
 # ⚙ Technologies Used

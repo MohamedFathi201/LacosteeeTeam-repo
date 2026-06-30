@@ -30,34 +30,74 @@ The pipeline demonstrates modern Data Engineering concepts including:
 
 # 🏗 Architecture
 
-```
-Car Simulator
-      │
-      ▼
-car_stream.jsonl
-      │
-      ▼
-Airflow Scheduler
-      │
-      ▼
-Load Bronze
-(PostgreSQL)
-      │
-      ▼
-dbt Transformations
-      │
-      ▼
-Silver Layer
-      │
-      ▼
-Gold Layer
-      │
-      ▼
-Analytics Tables
-```
 
----
-
+```text
+                                                  CAR TELEMETRY DATA PLATFORM
+                              
+                              
+                              ┌──────────────────────────────┐     ┌──────────────────────────────┐
+                              │ MILESTONE 1 (DELIVERED)      │     │ MILESTONE 2 (UPCOMING)       │
+                              │ Batch Pipeline               │     │ Azure Stream Pipeline        │
+                              └──────────────────────────────┘     └──────────────────────────────┘
+                              
+                                    Car Simulator                        Car Simulator
+                                         │                                    │
+                                         ▼                                    ▼
+                                  car_stream.jsonl                    Azure Event Hub
+                                         │                                    │
+                                         ▼                                    ▼
+                                  Apache Airflow                  Azure Stream Analytics
+                                         │                                    │
+                                         ▼                                    ▼
+                               PostgreSQL (Bronze)             Azure Data Factory
+                                         │                           / Synapse
+                                         ▼                                    │
+                               dbt (Staging → Silver → Gold)                 ▼
+                                         │                          Azure Data Lake
+                                         ▼                                    │
+                               Gold Analytics Tables                          ▼
+                                                                   Transformations
+                                                                 (Silver → Gold)
+                                                                             │
+                                                                             ▼
+                                                                   Gold Analytics Tables
+                 ───────────────────────┬──────────────────────────────────────────────┬───────────────────────
+                                                           │
+                                                           ▼
+                              
+                              ┌──────────────────────────────────────────────────────────────┐
+                              │              MILESTONE 3 (UPCOMING)                          │
+                              │                 Unified Analytics Layer                      │
+                              ├──────────────────────────────────────────────────────────────┤
+                              │  Batch Gold Tables            Stream Gold Tables             │
+                              │           │                           │                      │
+                              │           └──────────────┬────────────┘                      │
+                              │                          ▼                                   │
+                              │             Unified Semantic Layer                           │
+                              │        (Conformed Models & Business Metrics)                 │
+                              │                          │                                   │
+                              │                          ▼                                   │
+                              │          Data Warehouse / Analytics Store                    │
+                              └──────────────────────────┬───────────────────────────────────┘
+                                                         │
+                                                         ▼
+                              
+                              ┌──────────────────────────────────────────────────────────────┐
+                              │              MILESTONE 4 (UPCOMING)                          │
+                              │               Dashboards & Insights                          │
+                              ├──────────────────────────────────────────────────────────────┤
+                              │                     Power BI Dashboard                       │
+                              │                            │                                 │
+                              │                            ▼                                 │
+                              │     Real-Time + Historical Fleet Analytics                  │
+                              │                            │                                 │
+                              │                            ▼                                 │
+                              │   • Vehicle Health Monitoring                               │
+                              │   • Driving Behavior Analysis                               │
+                              │   • Efficiency & Performance KPIs                           │
+                              │   • Alerts & Anomaly Detection                              │
+                              └──────────────────────────────────────────────────────────────┘
+```
 # ⚙ Technologies Used
 
 * Python

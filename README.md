@@ -1,8 +1,18 @@
+
 # 🚗 Car Telemetry Data Engineering Pipeline
 
 ## 📖 Overview
 
-This project is an end-to-end Data Engineering pipeline that simulates real-time vehicle telemetry, ingests streaming data into PostgreSQL, transforms it using dbt, and orchestrates the entire workflow with Apache Airflow running inside Docker containers.
+This project is an end-to-end Data Engineering pipeline that simulates real-time vehicle telemetry, ingests streaming data into PostgreSQL, transforms it using dbt, and orchestrates the entire workflow with Apache Airflow running inside Docker containers and streams it with real-time alerting, and visualizes it on a live dashboard.
+
+## Milestones
+
+| # | Milestone | Status |
+|---|-----------|--------|
+| 1 | Data Simulation & Ingestion | Complete |
+| 2 | Batch Data Pipeline (ETL) | Complete |
+| 3 | Streaming Pipeline with Alerts | Upcoming |
+| 4 | Dashboard & Final Report | Upcoming |
 
 The pipeline demonstrates modern Data Engineering concepts including:
 

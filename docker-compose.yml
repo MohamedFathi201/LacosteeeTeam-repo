@@ -34,7 +34,7 @@ services:
       AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
       AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
       AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
-    
+
       AIRFLOW_ADMIN_USER: ${AIRFLOW_ADMIN_USER}
       AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
       AIRFLOW_ADMIN_FIRSTNAME: ${AIRFLOW_ADMIN_FIRSTNAME}
@@ -64,7 +64,7 @@ services:
       airflow db migrate;
       if airflow users list -o json | python -c 'import json, os, sys; users = json.load(sys.stdin); user = os.environ[\"AIRFLOW_ADMIN_USER\"]; sys.exit(0 if any(u.get(\"username\") == user for u in users) else 1)'; then
         echo 'Airflow admin user already exists';
-      else 
+      else
        airflow users create --role Admin --username "${AIRFLOW_ADMIN_USER}" --password "${AIRFLOW_ADMIN_PASSWORD}" --firstname "${AIRFLOW_ADMIN_FIRSTNAME}" --lastname "${AIRFLOW_ADMIN_LASTNAME}" --email "${AIRFLOW_ADMIN_EMAIL}";
       fi
       "
@@ -123,27 +123,34 @@ services:
       - backend
       - simulator-net
 
+  # Single simulator service. Switch OUTPUT_MODE in .env between "batch"
+  # and "stream" and restart this service to demo each pipeline — they
+  # are run as separate sessions, not simultaneously. See car_simulator.py
+  # for why batch and stream aren't merged into one mode.
   simulator:
     build:
       context: ./simulator
-    
-    env_file:
-      - .env  
     container_name: car-telemetry-simulator
     restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      OUTPUT_MODE: ${OUTPUT_MODE:-batch}
+      IOTHUB_CONNECTION_STRING: ${IOTHUB_CONNECTION_STRING}
     command: >
-      bash -c "mkdir -p /data && touch /data/car_stream.jsonl && chmod 666 /data/car_stream.jsonl &&
-      python -u car_simulator.py --output-path /data/car_stream.jsonl --real-time"
+      python -u car_simulator.py --output-path /data/car_stream.jsonl --real-time
     volumes:
       - shared_data:/data
     networks:
       - simulator-net
 
 volumes:
-  shared_data:
-  airflow_logs:
   postgres_data:
+  airflow_logs:
+  shared_data:
 
 networks:
   backend:
+    driver: bridge
   simulator-net:
+    driver: bridge

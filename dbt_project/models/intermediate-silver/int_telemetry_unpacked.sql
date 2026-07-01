@@ -98,11 +98,11 @@ health as(
         *,
         --vehicle health 
         case
-            when engine_temp >= 110 
-            OR rpm >=6500
-            OR thermal_stress = 'HIGH' 
+            when engine_temp >= 125 
+            OR rpm >=6800
+            OR (thermal_stress = 'HIGH' AND engine_temp >= 115)
             then 'CRITICAL'
-            when engine_temp >= 100 
+            when engine_temp >= 105 
             OR engine_load = 'HIGH_LOAD'
             then 'WARNING'
            else 'NORMAL'
@@ -110,11 +110,11 @@ health as(
         end as engine_status,
 
         case
-            when oil_pressure <= 1.2 
-            OR oil_temp>=120
+            when oil_pressure <= 1.1
+            OR oil_temp>=130
             then 'CRITICAL'
-            when oil_pressure <= 1.5 
-            OR oil_temp>=105
+            when oil_pressure <= 1.3
+            OR oil_temp>=115
             then 'WARNING'
             else 'NORMAL'
         end as oil_status,
@@ -127,7 +127,7 @@ health as(
 
         case
             when fuel_level <= 5 then 'CRITICAL'
-            when fuel_level <= 10 then 'WARNING'
+            when fuel_level <= 15 then 'WARNING'
             else 'NORMAL'
         end as fuel_status,
 
@@ -135,7 +135,7 @@ health as(
             when(
                 avg_tyre_pressure < 26
                 or avg_tyre_temp > 90
-                or tyre_pressure_imbalance > 5
+                or tyre_pressure_imbalance > 7
                 or tyre_temp_imbalance > 15
             )then 'CRITICAL'
             
@@ -143,7 +143,7 @@ health as(
             when(
                 avg_tyre_pressure < 28
                 or avg_tyre_temp > 80
-                or tyre_pressure_imbalance > 3
+                or tyre_pressure_imbalance > 4
                 or tyre_temp_imbalance > 10               
             )then 'WARNING'
             

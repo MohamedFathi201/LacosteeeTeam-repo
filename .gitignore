@@ -28,3 +28,8 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# dbt user metadata
+dbt_project/.user.yml
+
+simulator/azure_config.py
